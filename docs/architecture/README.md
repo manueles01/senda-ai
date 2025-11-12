@@ -5,6 +5,7 @@ System architecture documentation for Senda platform.
 ## System Overview
 
 Senda is a conversational AI platform that integrates:
+
 - **Telephony** (Telnyx)
 - **Business Systems** (Phorest)
 - **AI/ML** (Google Gemini)

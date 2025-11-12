@@ -104,6 +104,7 @@ mypy src
 ## Environment Variables
 
 Each app has its own `.env.example` file:
+
 - `apps/api/.env.example` - API configuration
 - `apps/web/.env.local.example` - Web app configuration (create this file)
 

@@ -14,6 +14,7 @@ For development setup, see the main [README](../README.md) in the repository roo
 ## Contributing
 
 Please follow the documentation standards when adding new docs:
+
 - Use clear, descriptive headings
 - Include code examples where relevant
 - Keep documentation up to date with code changes

@@ -12,23 +12,23 @@ export interface PhorestConfig {
 }
 
 export class PhorestClient {
-  private config: PhorestConfig;
+  private _config: PhorestConfig;
 
   constructor(config: PhorestConfig) {
-    this.config = config;
+    this._config = config;
   }
 
-  async getAppointments(date: Date): Promise<any[]> {
+  async getAppointments(_date: Date): Promise<any[]> {
     // TODO: Implement Phorest API integration
     throw new Error('Not implemented');
   }
 
-  async createAppointment(data: any): Promise<any> {
+  async createAppointment(_data: any): Promise<any> {
     // TODO: Implement Phorest API integration
     throw new Error('Not implemented');
   }
 
-  async getClient(clientId: string): Promise<any> {
+  async getClient(_clientId: string): Promise<any> {
     // TODO: Implement Phorest API integration
     throw new Error('Not implemented');
   }

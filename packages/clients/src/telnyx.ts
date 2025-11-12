@@ -8,18 +8,18 @@ export interface TelnyxConfig {
 }
 
 export class TelnyxClient {
-  private config: TelnyxConfig;
+  private _config: TelnyxConfig;
 
   constructor(config: TelnyxConfig) {
-    this.config = config;
+    this._config = config;
   }
 
-  async sendSMS(to: string, message: string): Promise<any> {
+  async sendSMS(_to: string, _message: string): Promise<any> {
     // TODO: Implement Telnyx API integration
     throw new Error('Not implemented');
   }
 
-  async makeCall(to: string, from: string): Promise<any> {
+  async makeCall(_to: string, _from: string): Promise<any> {
     // TODO: Implement Telnyx API integration
     throw new Error('Not implemented');
   }

@@ -9,18 +9,20 @@ export interface GeminiConfig {
 }
 
 export class GeminiClient {
-  private config: GeminiConfig;
+  private _config: GeminiConfig;
 
   constructor(config: GeminiConfig) {
-    this.config = config;
+    this._config = config;
   }
 
-  async generateResponse(prompt: string): Promise<string> {
+  async generateResponse(_prompt: string): Promise<string> {
     // TODO: Implement Gemini API integration
     throw new Error('Not implemented');
   }
 
-  async streamResponse(prompt: string): Promise<AsyncIterableIterator<string>> {
+  async streamResponse(
+    _prompt: string
+  ): Promise<AsyncIterableIterator<string>> {
     // TODO: Implement Gemini streaming API integration
     throw new Error('Not implemented');
   }

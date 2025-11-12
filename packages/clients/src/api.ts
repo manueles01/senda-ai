@@ -24,7 +24,9 @@ export class SendaApiClient {
     const url = `${this.config.baseUrl}${endpoint}`;
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      ...(this.config.apiKey && { Authorization: `Bearer ${this.config.apiKey}` }),
+      ...(this.config.apiKey && {
+        Authorization: `Bearer ${this.config.apiKey}`,
+      }),
       ...options?.headers,
     };
 
@@ -52,7 +54,9 @@ export class SendaApiClient {
     return this.fetch('/conversations');
   }
 
-  async createConversation(data: Partial<Conversation>): Promise<ApiResponse<Conversation>> {
+  async createConversation(
+    data: Partial<Conversation>
+  ): Promise<ApiResponse<Conversation>> {
     return this.fetch('/conversations', {
       method: 'POST',
       body: JSON.stringify(data),

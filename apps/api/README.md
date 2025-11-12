@@ -1,6 +1,7 @@
 # Senda API
 
 FastAPI orchestrator that integrates:
+
 - **Telnyx**: Telephony services
 - **Phorest**: Salon management system
 - **Gemini**: AI/ML capabilities
