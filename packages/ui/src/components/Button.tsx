@@ -1,19 +1,16 @@
 import React from 'react';
 
-export interface ButtonProps {
-  children: React.ReactNode;
-  onClick?: () => void;
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline';
-  disabled?: boolean;
-  className?: string;
 }
 
 export function Button({
   children,
-  onClick,
   variant = 'primary',
   disabled = false,
   className = '',
+  ...props
 }: ButtonProps) {
   const baseStyles = 'px-4 py-2 rounded font-medium transition-colors';
   const variantStyles = {
@@ -24,11 +21,11 @@ export function Button({
 
   return (
     <button
-      onClick={onClick}
       disabled={disabled}
       className={`${baseStyles} ${variantStyles[variant]} ${className} ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
       }`}
+      {...props}
     >
       {children}
     </button>

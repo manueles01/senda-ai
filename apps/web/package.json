@@ -15,7 +15,8 @@
     "react-dom": "^18.2.0",
     "@senda/shared-types": "workspace:*",
     "@senda/ui": "workspace:*",
-    "@senda/clients": "workspace:*"
+    "@senda/clients": "workspace:*",
+    "firebase": "^10.8.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
