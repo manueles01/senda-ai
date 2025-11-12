@@ -8,3 +8,4 @@
 - `apps/agent`: Dialogflow CX agent definitions
 - `packages`: shared clients, schemas, and UI
 - `docs`: architecture and brand material
+# senda-ai
