@@ -5,6 +5,8 @@ Integrates Telnyx, Phorest, and Gemini
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from src.routes.webhooks import router as webhook_router
+from src.services.conversation import conversation_service
 
 app = FastAPI(
     title="Senda API",
@@ -21,14 +23,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
+app.include_router(webhook_router, tags=["webhooks"])
+
 
 @app.get("/")
 async def root() -> dict[str, str]:
     """Root endpoint"""
-    return {"message": "Senda API - Conversational AI Platform"}
+    active_calls = len(conversation_service.conversations)
+    return {
+        "message": "Senda API - Conversational AI Platform",
+        "active_calls": active_calls,
+        "status": "online",
+    }
 
 
 @app.get("/health")
 async def health() -> dict[str, str]:
     """Health check endpoint"""
     return {"status": "healthy"}
+
+
+@app.get("/status")
+async def status() -> dict:
+    """Get API status and active conversations"""
+    return {
+        "status": "online",
+        "active_calls": len(conversation_service.conversations),
+        "conversations": list(conversation_service.conversations.keys()),
+    }
