@@ -8,6 +8,7 @@ import base64
 import os
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List, Any
+from zoneinfo import ZoneInfo
 
 
 class PhorestService:
@@ -17,6 +18,7 @@ class PhorestService:
         self.base_url = os.getenv("PHOREST_BASE_URL")
         self.business_id = os.getenv("PHOREST_BUSINESS_ID")
         self.branch_id = os.getenv("PHOREST_BRANCH_ID")
+        self.timezone = os.getenv("SALON_TIMEZONE", "America/New_York")
         username = os.getenv("PHOREST_USERNAME")
         password = os.getenv("PHOREST_PASSWORD")
 
@@ -199,14 +201,32 @@ class PhorestService:
                         schedule = slot_data["clientSchedules"][0]["serviceSchedules"][
                             0
                         ]
-                        dt = datetime.fromisoformat(
+                        # Parse UTC time from Phorest
+                        dt_utc = datetime.fromisoformat(
                             schedule["startTime"].replace("Z", "+00:00")
                         )
+
+                        # Convert to salon's local timezone
+                        dt_local = dt_utc.astimezone(ZoneInfo(self.timezone))
+
+                        # Format for natural speech
+                        # Example: "Monday, November 18th at 2:30 PM"
+                        day = dt_local.strftime("%A")
+                        month = dt_local.strftime("%B")
+                        day_num = dt_local.day
+                        # Add ordinal suffix (1st, 2nd, 3rd, etc.)
+                        if 10 <= day_num % 100 <= 20:
+                            suffix = "th"
+                        else:
+                            suffix = {1: "st", 2: "nd", 3: "rd"}.get(day_num % 10, "th")
+                        time_str = dt_local.strftime("%I:%M %p").lstrip("0")
+
+                        formatted_time = f"{day}, {month} {day_num}{suffix} at {time_str}"
+
                         slots.append(
                             {
-                                "time": dt.strftime("%A at %I:%M %p"),
+                                "time": formatted_time,
                                 "raw": schedule["startTime"],
-                                "datetime": dt,
                             }
                         )
 
