@@ -3,6 +3,11 @@ Senda API - FastAPI orchestrator
 Integrates Telnyx, Phorest, and Gemini
 """
 
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.routes.webhooks import router as webhook_router

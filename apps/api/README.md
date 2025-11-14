@@ -51,9 +51,11 @@ cp .env.example .env
 
 Required credentials:
 
-- Phorest API credentials (username, password, business ID, branch ID)
-- Telnyx API key and phone number
-- Anthropic API key for Claude
+- **Phorest API**: username, password, business ID, branch ID
+  - **Important**: Use `https://api-gateway-us.phorest.com` for US accounts
+  - Use `https://api-gateway-eu.phorest.com` for EU accounts
+- **Telnyx**: API key and phone number
+- **Anthropic**: API key for Claude
 
 ### 4. Run the API
 
