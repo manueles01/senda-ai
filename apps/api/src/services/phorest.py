@@ -20,11 +20,12 @@ class PhorestService:
         username = os.getenv("PHOREST_USERNAME")
         password = os.getenv("PHOREST_PASSWORD")
 
-        # Create basic auth header
-        auth_string = base64.b64encode(f"{username}:{password}".encode()).decode()
+        # Create basic auth header with 'global/' prefix (required by Phorest API)
+        auth_string = base64.b64encode(f"global/{username}:{password}".encode()).decode()
         self.headers = {
             "Authorization": f"Basic {auth_string}",
             "Content-Type": "application/json",
+            "Accept": "application/json",
         }
 
     async def find_client_by_phone(
@@ -40,7 +41,7 @@ class PhorestService:
             Client data if found, None otherwise
         """
         async with httpx.AsyncClient(timeout=30.0) as client:
-            url = f"{self.base_url}/api/business/{self.business_id}/branch/{self.branch_id}/client"
+            url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/branch/{self.branch_id}/client"
 
             try:
                 # Search by phone
@@ -76,7 +77,7 @@ class PhorestService:
             Created client data if successful, None otherwise
         """
         async with httpx.AsyncClient(timeout=30.0) as client:
-            url = f"{self.base_url}/api/business/{self.business_id}/branch/{self.branch_id}/client"
+            url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/branch/{self.branch_id}/client"
 
             payload = {
                 "firstName": first_name,
@@ -98,11 +99,11 @@ class PhorestService:
     async def get_services(self) -> List[Dict[str, Any]]:
         """Get all available services"""
         async with httpx.AsyncClient(timeout=30.0) as client:
-            url = f"{self.base_url}/api/business/{self.business_id}/branch/{self.branch_id}/service"
+            url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/branch/{self.branch_id}/service"
 
             try:
                 response = await client.get(
-                    url, headers=self.headers, params={"size": 100}
+                    url, headers=self.headers, params={"size": 500}
                 )
                 response.raise_for_status()
                 data = response.json()
@@ -114,7 +115,7 @@ class PhorestService:
     async def get_staff(self) -> List[Dict[str, Any]]:
         """Get all staff members"""
         async with httpx.AsyncClient(timeout=30.0) as client:
-            url = f"{self.base_url}/api/business/{self.business_id}/branch/{self.branch_id}/staff"
+            url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/branch/{self.branch_id}/staff"
 
             try:
                 response = await client.get(url, headers=self.headers)
@@ -171,7 +172,7 @@ class PhorestService:
             now = datetime.now()
             later = now + timedelta(days=days_ahead)
 
-            avail_url = f"{self.base_url}/api/business/{self.business_id}/branch/{self.branch_id}/appointments/availability"
+            avail_url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/branch/{self.branch_id}/appointments/availability"
             payload = {
                 "startTime": now.isoformat() + "Z",
                 "endTime": later.isoformat() + "Z",
@@ -239,7 +240,7 @@ class PhorestService:
             Created appointment data if successful, None otherwise
         """
         async with httpx.AsyncClient(timeout=30.0) as client:
-            url = f"{self.base_url}/api/business/{self.business_id}/branch/{self.branch_id}/appointment"
+            url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/branch/{self.branch_id}/appointment"
 
             payload = {
                 "clientId": client_id,
@@ -260,7 +261,7 @@ class PhorestService:
     ) -> List[Dict[str, Any]]:
         """Get all appointments for a client"""
         async with httpx.AsyncClient(timeout=30.0) as client:
-            url = f"{self.base_url}/api/business/{self.business_id}/branch/{self.branch_id}/appointment"
+            url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/branch/{self.branch_id}/appointment"
 
             try:
                 response = await client.get(
@@ -276,7 +277,7 @@ class PhorestService:
     async def cancel_appointment(self, appointment_id: str) -> bool:
         """Cancel an appointment"""
         async with httpx.AsyncClient(timeout=30.0) as client:
-            url = f"{self.base_url}/api/business/{self.business_id}/branch/{self.branch_id}/appointment/{appointment_id}/cancel"
+            url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/branch/{self.branch_id}/appointment/{appointment_id}/cancel"
 
             try:
                 response = await client.post(url, headers=self.headers, json={})
