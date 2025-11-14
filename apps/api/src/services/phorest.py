@@ -41,12 +41,13 @@ class PhorestService:
             Client data if found, None otherwise
         """
         async with httpx.AsyncClient(timeout=30.0) as client:
-            url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/branch/{self.branch_id}/client"
+            # Note: Client endpoint does NOT include branch ID (per Phorest API docs)
+            url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/client"
 
             try:
                 # Search by phone
                 response = await client.get(
-                    url, headers=self.headers, params={"mobile": phone_number, "size": 10}
+                    url, headers=self.headers, params={"mobile": phone_number, "size": 50, "page": 0}
                 )
                 response.raise_for_status()
 
@@ -77,7 +78,8 @@ class PhorestService:
             Created client data if successful, None otherwise
         """
         async with httpx.AsyncClient(timeout=30.0) as client:
-            url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/branch/{self.branch_id}/client"
+            # Note: Client endpoint does NOT include branch ID (per Phorest API docs)
+            url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/client"
 
             payload = {
                 "firstName": first_name,
