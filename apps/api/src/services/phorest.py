@@ -111,9 +111,13 @@ class PhorestService:
                 )
                 response.raise_for_status()
                 data = response.json()
-                return data.get("_embedded", {}).get("services", [])
+                services = data.get("_embedded", {}).get("services", [])
+                if not services:
+                    print(f"⚠️  No services in response. Response keys: {list(data.keys())}")
+                return services
             except Exception as e:
                 print(f"❌ Error fetching services: {e}")
+                print(f"  URL: {url}")
                 return []
 
     async def get_staff(self) -> List[Dict[str, Any]]:
@@ -125,9 +129,13 @@ class PhorestService:
                 response = await client.get(url, headers=self.headers)
                 response.raise_for_status()
                 data = response.json()
-                return data.get("_embedded", {}).get("staffs", [])
+                staff = data.get("_embedded", {}).get("staffs", [])
+                if not staff:
+                    print(f"⚠️  No staff in response. Response keys: {list(data.keys())}")
+                return staff
             except Exception as e:
                 print(f"❌ Error fetching staff: {e}")
+                print(f"  URL: {url}")
                 return []
 
     async def check_availability(
@@ -147,9 +155,17 @@ class PhorestService:
         Returns:
             Dictionary with service, staff, and available time slots
         """
+        print(f"\n🔵 check_availability() called")
+        print(f"  Requested service: '{service_name}'")
+        print(f"  Requested staff: '{staff_name}'")
+        print(f"  Days ahead: {days_ahead}")
+
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Get services and find match
+            print(f"\n  📋 Fetching services list...")
             services = await self.get_services()
+            print(f"  ✅ Got {len(services)} services")
+
             service = None
             for svc in services:
                 if service_name.lower() in svc["name"].lower():
@@ -158,8 +174,16 @@ class PhorestService:
             if not service and services:
                 service = services[0]  # Default to first service
 
+            if service:
+                print(f"  ✅ Matched service: {service.get('name')}")
+            else:
+                print(f"  ❌ No service matched!")
+
             # Get staff and find match
+            print(f"\n  👥 Fetching staff list...")
             staff_list = await self.get_staff()
+            print(f"  ✅ Got {len(staff_list)} staff members")
+
             staff = None
             if staff_name:
                 for s in staff_list:
@@ -169,7 +193,13 @@ class PhorestService:
             if not staff and staff_list:
                 staff = staff_list[0]  # Default to first staff
 
+            if staff:
+                print(f"  ✅ Matched staff: {staff.get('firstName')} {staff.get('lastName')}")
+            else:
+                print(f"  ❌ No staff matched!")
+
             if not service or not staff:
+                print(f"  ❌ Missing service or staff - returning empty")
                 return {"service": None, "staff": None, "slots": []}
 
             # Check availability
@@ -188,12 +218,27 @@ class PhorestService:
                 ],
             }
 
+            print(f"\n🔍 DEBUG: Checking availability")
+            print(f"  Service: {service.get('name')} (ID: {service.get('serviceId')})")
+            print(f"  Staff: {staff.get('firstName')} {staff.get('lastName')} (ID: {staff.get('staffId')})")
+            print(f"  URL: {avail_url}")
+            print(f"  Payload: {payload}")
+
             try:
                 response = await client.post(
                     avail_url, headers=self.headers, json=payload
                 )
+
+                print(f"  Response Status: {response.status_code}")
+                print(f"  Response Headers: {dict(response.headers)}")
+
                 response.raise_for_status()
                 result = response.json()
+
+                print(f"  Response Body: {result}")
+                print(f"  Data field exists: {'data' in result}")
+                if result.get("data"):
+                    print(f"  Number of slots: {len(result['data'])}")
 
                 slots = []
                 if result.get("data"):
@@ -238,8 +283,18 @@ class PhorestService:
                     "slots": slots,
                 }
 
+            except httpx.HTTPStatusError as e:
+                print(f"\n❌ HTTP Error checking availability:")
+                print(f"  Status Code: {e.response.status_code}")
+                print(f"  Response Body: {e.response.text}")
+                print(f"  Request URL: {e.request.url}")
+                print(f"  Request Body: {payload}")
+                return {"service": None, "staff": None, "slots": []}
             except Exception as e:
-                print(f"❌ Error checking availability: {e}")
+                print(f"\n❌ Error checking availability: {type(e).__name__}")
+                print(f"  Error: {str(e)}")
+                import traceback
+                print(f"  Traceback: {traceback.format_exc()}")
                 return {"service": None, "staff": None, "slots": []}
 
     async def create_appointment(
