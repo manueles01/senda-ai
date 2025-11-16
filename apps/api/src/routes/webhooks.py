@@ -24,25 +24,29 @@ async def handle_call_webhook(request: Request):
     call_control_id = payload.get("call_control_id")
 
     print(f"\n📞 Event: {event_type}")
+    print(f"📞 Call Control ID: {call_control_id}")
 
-    # CALL INITIATED - Customer calls in
-    if event_type == "call.initiated":
-        caller = payload.get("from")
+    # ASSISTANT INITIALIZATION or CALL INITIATED - Customer calls in
+    if event_type in ["assistant.initialization", "call.initiated"]:
+        caller = payload.get("from") or payload.get("caller_number")
         print(f"📞 Call from: {caller}")
+        print(f"📞 Full payload keys: {list(payload.keys())}")
 
         # Initialize conversation
         conversation_service.create_conversation(call_control_id, caller)
 
-        # Check if customer exists in Phorest
+        # Check if customer exists in Phorest (IMMEDIATELY!)
+        print(f"🔍 Looking up client by phone: {caller}")
         client = await phorest_service.find_client_by_phone(caller)
         if client:
             print(f"✅ Found client: {client.get('firstName', '')} {client.get('lastName', '')}")
             conversation_service.set_client_info(call_control_id, client)
         else:
-            print(f"🆕 New caller: {caller}")
+            print(f"🆕 New caller (not in system): {caller}")
 
-        # Answer the call
-        await telnyx_service.answer_call(call_control_id)
+        # Answer the call if needed
+        if event_type == "call.initiated":
+            await telnyx_service.answer_call(call_control_id)
 
     # CALL ANSWERED - Ready to greet
     elif event_type == "call.answered":

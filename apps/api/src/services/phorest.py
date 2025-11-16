@@ -42,26 +42,40 @@ class PhorestService:
         Returns:
             Client data if found, None otherwise
         """
+        print(f"\n🔍 find_client_by_phone() called")
+        print(f"  Phone number: {phone_number}")
+
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Note: Client endpoint does NOT include branch ID (per Phorest API docs)
             url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/client"
 
             try:
                 # Search by phone
+                params = {"mobile": phone_number, "size": 50, "page": 0}
+                print(f"  URL: {url}")
+                print(f"  Params: {params}")
+
                 response = await client.get(
-                    url, headers=self.headers, params={"mobile": phone_number, "size": 50, "page": 0}
+                    url, headers=self.headers, params=params
                 )
+
+                print(f"  Response Status: {response.status_code}")
                 response.raise_for_status()
 
                 data = response.json()
                 clients = data.get("_embedded", {}).get("clients", [])
 
+                print(f"  Found {len(clients)} client(s)")
                 if clients:
+                    print(f"  ✅ Match: {clients[0].get('firstName')} {clients[0].get('lastName')} - {clients[0].get('mobile')}")
                     return clients[0]  # Return first match
-                return None
+                else:
+                    print(f"  ℹ️  No clients found with mobile: {phone_number}")
+                    return None
 
             except Exception as e:
                 print(f"❌ Error finding client: {e}")
+                print(f"  URL: {url}")
                 return None
 
     async def create_client(
