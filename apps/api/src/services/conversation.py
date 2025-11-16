@@ -1,21 +1,23 @@
 """
 Conversation Service
-Manages conversation state and Claude AI interactions
+Manages conversation state and AI interactions
 """
 
 import os
 import json
 from typing import Dict, List, Optional, Any
-from anthropic import Anthropic
+import google.generativeai as genai
 
 
 class ConversationService:
-    """Service for managing conversations with Claude AI"""
+    """Service for managing conversations with Gemini AI"""
 
     def __init__(self):
-        self.anthropic = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        # Configure Gemini
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
         self.conversations: Dict[str, Dict] = {}
-        self.model = "claude-sonnet-4-20250514"
 
     def create_conversation(
         self, call_control_id: str, caller_number: str
@@ -111,16 +113,24 @@ class ConversationService:
         system_prompt = self._build_system_prompt(client_info)
 
         try:
-            # Call Claude
-            response = self.anthropic.messages.create(
-                model=self.model,
-                max_tokens=500,
-                system=system_prompt,
-                messages=conv["messages"],
-            )
+            # Build conversation history for Gemini
+            gemini_messages = []
+            for msg in conv["messages"]:
+                role = "user" if msg["role"] == "user" else "model"
+                gemini_messages.append({
+                    "role": role,
+                    "parts": [msg["content"]]
+                })
 
-            reply = response.content[0].text
-            print(f"🤖 Claude: '{reply[:100]}...'")
+            # Start chat with Gemini
+            chat = self.model.start_chat(history=gemini_messages[:-1] if len(gemini_messages) > 1 else [])
+
+            # Send the system prompt + latest user message
+            prompt = f"{system_prompt}\n\nUser: {transcript}"
+            response = chat.send_message(prompt)
+
+            reply = response.text
+            print(f"🤖 Gemini: '{reply[:100]}...'")
 
             # Add assistant response
             self.add_message(call_control_id, "assistant", reply)
@@ -137,7 +147,9 @@ class ConversationService:
             return {"response": reply, "intent": intent}
 
         except Exception as e:
-            print(f"❌ Claude error: {e}")
+            print(f"❌ Gemini error: {e}")
+            import traceback
+            print(f"  Traceback: {traceback.format_exc()}")
             return {
                 "response": "I'm having trouble understanding. Could you repeat that?",
                 "intent": None,

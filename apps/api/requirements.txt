@@ -4,5 +4,6 @@ httpx
 pydantic
 python-dotenv
 anthropic
+google-generativeai
 google-auth
 google-cloud-secret-manager
