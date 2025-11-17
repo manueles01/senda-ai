@@ -1,0 +1,45 @@
+{
+  "entities": [
+    {
+      "displayName": "service",
+      "kind": "KIND_MAP",
+      "autoExpansionMode": "AUTO_EXPANSION_MODE_DEFAULT",
+      "entities": [
+        {
+          "value": "haircut",
+          "synonyms": ["haircut", "cut", "trim", "hair cut", "hair trim", "style"]
+        },
+        {
+          "value": "coloring",
+          "synonyms": ["coloring", "color", "dye", "hair color", "hair coloring", "highlights", "balayage", "ombre"]
+        },
+        {
+          "value": "manicure",
+          "synonyms": ["manicure", "mani", "nails", "nail service", "gel nails"]
+        },
+        {
+          "value": "pedicure",
+          "synonyms": ["pedicure", "pedi", "foot service", "toes"]
+        },
+        {
+          "value": "facial",
+          "synonyms": ["facial", "face treatment", "skin treatment", "skincare"]
+        },
+        {
+          "value": "massage",
+          "synonyms": ["massage", "body massage", "back massage", "relaxation"]
+        },
+        {
+          "value": "blowout",
+          "synonyms": ["blowout", "blow dry", "styling", "hair styling"]
+        },
+        {
+          "value": "waxing",
+          "synonyms": ["waxing", "wax", "hair removal", "eyebrow wax"]
+        }
+      ],
+      "excludedPhrases": [],
+      "enableFuzzyExtraction": true
+    }
+  ]
+}

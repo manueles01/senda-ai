@@ -2,6 +2,10 @@ fastapi
 uvicorn[standard]
 httpx
 pydantic
+pydantic-settings
 python-dotenv
 google-auth
 google-cloud-secret-manager
+google-cloud-dialogflow-cx
+google-generativeai
+telnyx

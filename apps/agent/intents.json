@@ -1,0 +1,182 @@
+{
+  "intents": [
+    {
+      "displayName": "greeting",
+      "priority": 500000,
+      "trainingPhrases": [
+        {"parts": [{"text": "hello"}]},
+        {"parts": [{"text": "hi"}]},
+        {"parts": [{"text": "hey"}]},
+        {"parts": [{"text": "good morning"}]},
+        {"parts": [{"text": "good afternoon"}]},
+        {"parts": [{"text": "good evening"}]},
+        {"parts": [{"text": "hi there"}]},
+        {"parts": [{"text": "hey there"}]}
+      ],
+      "description": "User greets the agent"
+    },
+    {
+      "displayName": "book_appointment",
+      "priority": 500000,
+      "trainingPhrases": [
+        {"parts": [{"text": "I need to book an appointment"}]},
+        {"parts": [{"text": "I want to schedule an appointment"}]},
+        {"parts": [{"text": "Can I book a haircut"}]},
+        {"parts": [{"text": "I'd like to make an appointment"}]},
+        {"parts": [{"text": "Schedule me for a service"}]},
+        {"parts": [{"text": "I need a haircut"}]},
+        {"parts": [{"text": "Book me in"}]},
+        {"parts": [{"text": "I want to get my hair done"}]},
+        {"parts": [{"text": "Can I get an appointment"}]}
+      ],
+      "description": "User wants to book a new appointment"
+    },
+    {
+      "displayName": "check_availability",
+      "priority": 500000,
+      "trainingPhrases": [
+        {"parts": [{"text": "What times are available"}]},
+        {"parts": [{"text": "Do you have any openings"}]},
+        {"parts": [{"text": "Are you available on Monday"}]},
+        {"parts": [{"text": "What's your availability"}]},
+        {"parts": [{"text": "When can I come in"}]},
+        {"parts": [{"text": "Do you have slots tomorrow"}]},
+        {"parts": [{"text": "Check availability"}]}
+      ],
+      "description": "User wants to check available time slots"
+    },
+    {
+      "displayName": "cancel_appointment",
+      "priority": 500000,
+      "trainingPhrases": [
+        {"parts": [{"text": "I need to cancel my appointment"}]},
+        {"parts": [{"text": "Cancel my booking"}]},
+        {"parts": [{"text": "I can't make it"}]},
+        {"parts": [{"text": "I need to cancel"}]},
+        {"parts": [{"text": "Remove my appointment"}]},
+        {"parts": [{"text": "I want to cancel"}]}
+      ],
+      "description": "User wants to cancel an existing appointment"
+    },
+    {
+      "displayName": "modify_appointment",
+      "priority": 500000,
+      "trainingPhrases": [
+        {"parts": [{"text": "I need to change my appointment"}]},
+        {"parts": [{"text": "Can I reschedule"}]},
+        {"parts": [{"text": "Move my appointment"}]},
+        {"parts": [{"text": "Change my booking"}]},
+        {"parts": [{"text": "I need a different time"}]},
+        {"parts": [{"text": "Reschedule my appointment"}]}
+      ],
+      "description": "User wants to modify an existing appointment"
+    },
+    {
+      "displayName": "service_inquiry",
+      "priority": 500000,
+      "trainingPhrases": [
+        {"parts": [{"text": "What services do you offer"}]},
+        {"parts": [{"text": "What can you do"}]},
+        {"parts": [{"text": "Tell me about your services"}]},
+        {"parts": [{"text": "What treatments are available"}]},
+        {"parts": [{"text": "Do you do haircuts"}]},
+        {"parts": [{"text": "Do you offer coloring"}]},
+        {"parts": [{"text": "What's on the menu"}]}
+      ],
+      "description": "User asking about available services"
+    },
+    {
+      "displayName": "hours_inquiry",
+      "priority": 500000,
+      "trainingPhrases": [
+        {"parts": [{"text": "What are your hours"}]},
+        {"parts": [{"text": "When are you open"}]},
+        {"parts": [{"text": "What time do you close"}]},
+        {"parts": [{"text": "Are you open on weekends"}]},
+        {"parts": [{"text": "What's your schedule"}]},
+        {"parts": [{"text": "When can I come in"}]}
+      ],
+      "description": "User asking about business hours"
+    },
+    {
+      "displayName": "pricing_inquiry",
+      "priority": 500000,
+      "trainingPhrases": [
+        {"parts": [{"text": "How much does a haircut cost"}]},
+        {"parts": [{"text": "What are your prices"}]},
+        {"parts": [{"text": "How much for coloring"}]},
+        {"parts": [{"text": "What's the price"}]},
+        {"parts": [{"text": "How expensive is it"}]},
+        {"parts": [{"text": "Cost of services"}]},
+        {"parts": [{"text": "Pricing information"}]}
+      ],
+      "description": "User asking about service pricing"
+    },
+    {
+      "displayName": "confirm_yes",
+      "priority": 500000,
+      "trainingPhrases": [
+        {"parts": [{"text": "yes"}]},
+        {"parts": [{"text": "yeah"}]},
+        {"parts": [{"text": "yep"}]},
+        {"parts": [{"text": "sure"}]},
+        {"parts": [{"text": "that works"}]},
+        {"parts": [{"text": "sounds good"}]},
+        {"parts": [{"text": "perfect"}]},
+        {"parts": [{"text": "correct"}]},
+        {"parts": [{"text": "that's right"}]},
+        {"parts": [{"text": "affirmative"}]}
+      ],
+      "description": "User confirms or agrees"
+    },
+    {
+      "displayName": "confirm_no",
+      "priority": 500000,
+      "trainingPhrases": [
+        {"parts": [{"text": "no"}]},
+        {"parts": [{"text": "nope"}]},
+        {"parts": [{"text": "not really"}]},
+        {"parts": [{"text": "no thanks"}]},
+        {"parts": [{"text": "that doesn't work"}]},
+        {"parts": [{"text": "I don't think so"}]},
+        {"parts": [{"text": "negative"}]},
+        {"parts": [{"text": "that's not right"}]}
+      ],
+      "description": "User declines or disagrees"
+    },
+    {
+      "displayName": "provide_phone",
+      "priority": 500000,
+      "trainingPhrases": [
+        {"parts": [{"text": "My number is "}, {"text": "555-123-4567", "parameterId": "phone"}]},
+        {"parts": [{"text": "It's "}, {"text": "555-123-4567", "parameterId": "phone"}]},
+        {"parts": [{"text": "555-123-4567", "parameterId": "phone"}]},
+        {"parts": [{"text": "You can reach me at "}, {"text": "555-123-4567", "parameterId": "phone"}]}
+      ],
+      "parameters": [
+        {
+          "id": "phone",
+          "entityType": "@sys.phone-number"
+        }
+      ],
+      "description": "User provides phone number"
+    },
+    {
+      "displayName": "provide_name",
+      "priority": 500000,
+      "trainingPhrases": [
+        {"parts": [{"text": "My name is "}, {"text": "John Smith", "parameterId": "name"}]},
+        {"parts": [{"text": "I'm "}, {"text": "Jane Doe", "parameterId": "name"}]},
+        {"parts": [{"text": "This is "}, {"text": "Bob Johnson", "parameterId": "name"}]},
+        {"parts": [{"text": "John Smith", "parameterId": "name"}]}
+      ],
+      "parameters": [
+        {
+          "id": "name",
+          "entityType": "@sys.person"
+        }
+      ],
+      "description": "User provides their name"
+    }
+  ]
+}

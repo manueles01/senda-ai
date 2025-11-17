@@ -1,0 +1,46 @@
+{
+  "displayName": "Senda AI Receptionist",
+  "defaultLanguageCode": "en",
+  "timeZone": "America/New_York",
+  "description": "AI-powered salon receptionist for appointment booking and customer service",
+  "enableStackdriverLogging": true,
+  "enableSpellCorrection": true,
+  "speechToTextSettings": {
+    "enableSpeechAdaptation": true
+  },
+  "advancedSettings": {
+    "speechSettings": {
+      "endpointerSensitivity": 50,
+      "noSpeechTimeout": "5s",
+      "models": {
+        "": "phone_call"
+      }
+    },
+    "dtmfSettings": {
+      "enabled": true,
+      "maxDigits": 10,
+      "finishDigit": "#"
+    }
+  },
+  "textToSpeechSettings": {
+    "synthesizeSpeechConfigs": {
+      "en": {
+        "voice": {
+          "name": "en-US-Neural2-F",
+          "ssmlGender": "FEMALE"
+        },
+        "speakingRate": 1.0,
+        "pitch": 0,
+        "volumeGainDb": 0,
+        "effectsProfileId": ["telephony-class-application"]
+      }
+    }
+  },
+  "startFlow": "Default Start Flow",
+  "securitySettings": {
+    "retentionWindowDays": 90,
+    "purgeDataTypes": ["DIALOGFLOW_HISTORY"],
+    "redactionStrategy": "REDACT_WITH_SERVICE",
+    "redactionScope": "REDACT_DISK_STORAGE"
+  }
+}

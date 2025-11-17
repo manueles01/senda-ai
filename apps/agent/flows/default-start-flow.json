@@ -1,0 +1,196 @@
+{
+  "displayName": "Default Start Flow",
+  "description": "Initial flow that greets the user and routes to appropriate sub-flows",
+  "transitionRoutes": [],
+  "eventHandlers": [
+    {
+      "event": "sys.no-match-default",
+      "triggerFulfillment": {
+        "messages": [
+          {
+            "text": {
+              "text": ["I didn't quite catch that. Could you please repeat?"]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event": "sys.no-input-default",
+      "triggerFulfillment": {
+        "messages": [
+          {
+            "text": {
+              "text": ["Are you still there? Please let me know how I can help you."]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "pages": [
+    {
+      "displayName": "Start Page",
+      "entryFulfillment": {
+        "messages": [
+          {
+            "text": {
+              "text": [
+                "Thank you for calling Senda Salon! I'm your AI assistant. How can I help you today? I can help you book an appointment, check our hours, or answer questions about our services."
+              ]
+            }
+          }
+        ]
+      },
+      "transitionRoutes": [
+        {
+          "intent": "book_appointment",
+          "targetFlow": "Appointment Booking Flow",
+          "triggerFulfillment": {
+            "messages": [
+              {
+                "text": {
+                  "text": ["Great! I'd be happy to help you book an appointment."]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "intent": "check_availability",
+          "targetFlow": "Appointment Booking Flow",
+          "triggerFulfillment": {
+            "messages": [
+              {
+                "text": {
+                  "text": ["Let me check our availability for you."]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "intent": "cancel_appointment",
+          "targetFlow": "Appointment Management Flow",
+          "triggerFulfillment": {
+            "messages": [
+              {
+                "text": {
+                  "text": ["I can help you cancel your appointment."]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "intent": "modify_appointment",
+          "targetFlow": "Appointment Management Flow",
+          "triggerFulfillment": {
+            "messages": [
+              {
+                "text": {
+                  "text": ["I can help you modify your appointment."]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "intent": "service_inquiry",
+          "targetPage": "Service Information Page"
+        },
+        {
+          "intent": "hours_inquiry",
+          "targetPage": "Hours Information Page"
+        },
+        {
+          "intent": "pricing_inquiry",
+          "targetPage": "Pricing Information Page"
+        }
+      ]
+    },
+    {
+      "displayName": "Service Information Page",
+      "entryFulfillment": {
+        "webhook": "get_services",
+        "tag": "get_services"
+      },
+      "transitionRoutes": [
+        {
+          "intent": "book_appointment",
+          "targetFlow": "Appointment Booking Flow"
+        },
+        {
+          "condition": "$page.params.status = 'FINAL'",
+          "targetPage": "Start Page",
+          "triggerFulfillment": {
+            "messages": [
+              {
+                "text": {
+                  "text": ["Is there anything else I can help you with?"]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "displayName": "Hours Information Page",
+      "entryFulfillment": {
+        "messages": [
+          {
+            "text": {
+              "text": [
+                "We're open Monday through Friday from 9 AM to 8 PM, Saturday from 9 AM to 6 PM, and Sunday from 10 AM to 5 PM. Would you like to book an appointment?"
+              ]
+            }
+          }
+        ]
+      },
+      "transitionRoutes": [
+        {
+          "intent": "confirm_yes",
+          "targetFlow": "Appointment Booking Flow"
+        },
+        {
+          "intent": "confirm_no",
+          "targetPage": "Start Page",
+          "triggerFulfillment": {
+            "messages": [
+              {
+                "text": {
+                  "text": ["No problem! Is there anything else I can help you with?"]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "displayName": "Pricing Information Page",
+      "entryFulfillment": {
+        "messages": [
+          {
+            "text": {
+              "text": [
+                "Our pricing varies by service. Haircuts start at $45, coloring services start at $85, and spa services like manicures and facials start at $35. Would you like specific pricing for a particular service?"
+              ]
+            }
+          }
+        ]
+      },
+      "transitionRoutes": [
+        {
+          "intent": "book_appointment",
+          "targetFlow": "Appointment Booking Flow"
+        },
+        {
+          "condition": "$page.params.status = 'FINAL'",
+          "targetPage": "Start Page"
+        }
+      ]
+    }
+  ]
+}

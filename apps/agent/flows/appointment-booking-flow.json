@@ -1,0 +1,251 @@
+{
+  "displayName": "Appointment Booking Flow",
+  "description": "Handles the appointment booking process",
+  "transitionRoutes": [],
+  "eventHandlers": [],
+  "pages": [
+    {
+      "displayName": "Collect Service",
+      "form": {
+        "parameters": [
+          {
+            "displayName": "service",
+            "entityType": "@service",
+            "fillBehavior": {
+              "initialPromptFulfillment": {
+                "messages": [
+                  {
+                    "text": {
+                      "text": ["What service would you like to book? We offer haircuts, coloring, manicures, pedicures, facials, and massages."]
+                    }
+                  }
+                ]
+              },
+              "repromptEventHandlers": [
+                {
+                  "event": "sys.no-match-default",
+                  "triggerFulfillment": {
+                    "messages": [
+                      {
+                        "text": {
+                          "text": ["I didn't catch that. Please choose from: haircut, coloring, manicure, pedicure, facial, or massage."]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "required": true
+          }
+        ]
+      },
+      "transitionRoutes": [
+        {
+          "condition": "$page.params.status = 'FINAL'",
+          "targetPage": "Collect Date"
+        }
+      ]
+    },
+    {
+      "displayName": "Collect Date",
+      "form": {
+        "parameters": [
+          {
+            "displayName": "date",
+            "entityType": "@sys.date",
+            "fillBehavior": {
+              "initialPromptFulfillment": {
+                "messages": [
+                  {
+                    "text": {
+                      "text": ["What date would you like to come in?"]
+                    }
+                  }
+                ]
+              },
+              "repromptEventHandlers": [
+                {
+                  "event": "sys.no-match-default",
+                  "triggerFulfillment": {
+                    "messages": [
+                      {
+                        "text": {
+                          "text": ["Please provide a date. For example, you can say 'tomorrow' or 'next Monday'."]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "required": true
+          }
+        ]
+      },
+      "transitionRoutes": [
+        {
+          "condition": "$page.params.status = 'FINAL'",
+          "targetPage": "Check Availability"
+        }
+      ]
+    },
+    {
+      "displayName": "Check Availability",
+      "entryFulfillment": {
+        "webhook": "check_availability",
+        "tag": "check_availability",
+        "setParameterActions": [
+          {
+            "parameter": "date",
+            "value": "$session.params.date"
+          },
+          {
+            "parameter": "service",
+            "value": "$session.params.service"
+          }
+        ]
+      },
+      "form": {
+        "parameters": [
+          {
+            "displayName": "time",
+            "entityType": "@sys.time",
+            "fillBehavior": {
+              "initialPromptFulfillment": {
+                "messages": [
+                  {
+                    "text": {
+                      "text": ["$session.params.availability_message"]
+                    }
+                  }
+                ]
+              }
+            },
+            "required": true
+          }
+        ]
+      },
+      "transitionRoutes": [
+        {
+          "condition": "$page.params.status = 'FINAL'",
+          "targetPage": "Collect Customer Info"
+        }
+      ]
+    },
+    {
+      "displayName": "Collect Customer Info",
+      "form": {
+        "parameters": [
+          {
+            "displayName": "customer_name",
+            "entityType": "@sys.person",
+            "fillBehavior": {
+              "initialPromptFulfillment": {
+                "messages": [
+                  {
+                    "text": {
+                      "text": ["Great! Can I get your name please?"]
+                    }
+                  }
+                ]
+              }
+            },
+            "required": true
+          },
+          {
+            "displayName": "customer_phone",
+            "entityType": "@sys.phone-number",
+            "fillBehavior": {
+              "initialPromptFulfillment": {
+                "messages": [
+                  {
+                    "text": {
+                      "text": ["And what's the best phone number to reach you?"]
+                    }
+                  }
+                ]
+              }
+            },
+            "required": true
+          }
+        ]
+      },
+      "transitionRoutes": [
+        {
+          "condition": "$page.params.status = 'FINAL'",
+          "targetPage": "Confirm Booking"
+        }
+      ]
+    },
+    {
+      "displayName": "Confirm Booking",
+      "entryFulfillment": {
+        "messages": [
+          {
+            "text": {
+              "text": [
+                "Let me confirm: I'm booking a $session.params.service for $session.params.customer_name on $session.params.date at $session.params.time. Is that correct?"
+              ]
+            }
+          }
+        ]
+      },
+      "transitionRoutes": [
+        {
+          "intent": "confirm_yes",
+          "targetPage": "Book Appointment"
+        },
+        {
+          "intent": "confirm_no",
+          "targetPage": "Collect Service",
+          "triggerFulfillment": {
+            "messages": [
+              {
+                "text": {
+                  "text": ["No problem, let's start over."]
+                }
+              }
+            ],
+            "setParameterActions": [
+              {"parameter": "service", "value": null},
+              {"parameter": "date", "value": null},
+              {"parameter": "time", "value": null},
+              {"parameter": "customer_name", "value": null},
+              {"parameter": "customer_phone", "value": null}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "displayName": "Book Appointment",
+      "entryFulfillment": {
+        "webhook": "book_appointment",
+        "tag": "book_appointment",
+        "setParameterActions": [
+          {"parameter": "service", "value": "$session.params.service"},
+          {"parameter": "date", "value": "$session.params.date"},
+          {"parameter": "time", "value": "$session.params.time"},
+          {"parameter": "customer_name", "value": "$session.params.customer_name"},
+          {"parameter": "customer_phone", "value": "$session.params.customer_phone"}
+        ]
+      },
+      "transitionRoutes": [
+        {
+          "condition": "$session.params.booking_confirmed = true",
+          "targetPage": "END_FLOW",
+          "triggerFulfillment": {
+            "messages": [
+              {
+                "text": {
+                  "text": ["Thank you! We look forward to seeing you. Have a great day!"]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
