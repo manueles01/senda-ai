@@ -33,7 +33,7 @@ app.include_router(webhook_router, tags=["webhooks"])
 
 
 @app.get("/")
-async def root() -> dict[str, str]:
+async def root() -> dict:
     """Root endpoint"""
     active_calls = len(conversation_service.conversations)
     return {
