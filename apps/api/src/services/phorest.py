@@ -72,8 +72,12 @@ class PhorestService:
         Returns:
             Client data if found, None otherwise
         """
-        print(f"\n🔍 find_client_by_phone() called")
-        print(f"  Phone number: {phone_number}")
+        print(f"\n{'='*70}")
+        print(f"🔍 PHOREST CLIENT SEARCH")
+        print(f"{'='*70}")
+        print(f"  Input phone number: {phone_number}")
+        print(f"  Base URL: {self.base_url}")
+        print(f"  Business ID: {self.business_id}")
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Note: Client endpoint does NOT include branch ID (per Phorest API docs)
@@ -81,34 +85,56 @@ class PhorestService:
 
             # Try multiple phone number formats
             phone_variants = self._normalize_phone(phone_number)
-            print(f"  Trying {len(phone_variants)} phone format variants")
+            print(f"\n  📋 Generated {len(phone_variants)} phone format variants:")
+            for i, v in enumerate(phone_variants, 1):
+                print(f"     {i}. {v}")
 
-            for variant in phone_variants:
+            for idx, variant in enumerate(phone_variants, 1):
+                print(f"\n  🔍 Attempt {idx}/{len(phone_variants)}: Trying variant '{variant}'")
                 try:
                     # Search by phone
                     params = {"mobile": variant, "size": 50, "page": 0}
-                    print(f"  Trying: {variant}")
+                    print(f"     URL: {url}")
+                    print(f"     Params: {params}")
 
                     response = await client.get(
                         url, headers=self.headers, params=params
                     )
 
-                    print(f"  Response Status: {response.status_code}")
+                    print(f"     HTTP Status: {response.status_code}")
+
+                    if response.status_code != 200:
+                        print(f"     ❌ Non-200 response: {response.text[:200]}")
+                        continue
+
                     response.raise_for_status()
 
                     data = response.json()
+                    print(f"     Response keys: {list(data.keys())}")
+
                     clients = data.get("_embedded", {}).get("clients", [])
+                    print(f"     Clients found: {len(clients)}")
 
                     if clients:
-                        print(f"  ✅ Found {len(clients)} client(s) with variant: {variant}")
-                        print(f"  ✅ Match: {clients[0].get('firstName')} {clients[0].get('lastName')} - {clients[0].get('mobile')}")
+                        print(f"\n  ✅ SUCCESS! Found {len(clients)} client(s) with variant: '{variant}'")
+                        print(f"     First match:")
+                        print(f"       - Name: {clients[0].get('firstName')} {clients[0].get('lastName')}")
+                        print(f"       - Mobile: {clients[0].get('mobile')}")
+                        print(f"       - Email: {clients[0].get('email', 'N/A')}")
+                        print(f"       - Client ID: {clients[0].get('clientId')}")
+                        print(f"{'='*70}\n")
                         return clients[0]  # Return first match
 
+                except httpx.HTTPStatusError as e:
+                    print(f"     ❌ HTTP Error: {e.response.status_code} - {e.response.text[:200]}")
+                    continue
                 except Exception as e:
-                    print(f"  ⚠️  Variant {variant} failed: {e}")
+                    print(f"     ❌ Exception: {type(e).__name__}: {str(e)}")
                     continue
 
-            print(f"  ℹ️  No clients found with any phone variant")
+            print(f"\n  ❌ SEARCH FAILED")
+            print(f"     No clients found with any of the {len(phone_variants)} phone variants")
+            print(f"{'='*70}\n")
             return None
 
     async def create_client(

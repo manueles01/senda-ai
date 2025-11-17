@@ -29,20 +29,41 @@ async def handle_call_webhook(request: Request):
     # ASSISTANT INITIALIZATION or CALL INITIATED - Customer calls in
     if event_type in ["assistant.initialization", "call.initiated"]:
         caller = payload.get("from") or payload.get("caller_number")
+        print(f"\n{'='*70}")
+        print(f"📞 INCOMING CALL")
+        print(f"{'='*70}")
         print(f"📞 Call from: {caller}")
+        print(f"📞 Event type: {event_type}")
+        print(f"📞 Call control ID: {call_control_id}")
         print(f"📞 Full payload keys: {list(payload.keys())}")
+        print(f"📞 Full payload: {payload}")
 
         # Initialize conversation
         conversation_service.create_conversation(call_control_id, caller)
 
         # Check if customer exists in Phorest (IMMEDIATELY!)
+        print(f"\n{'='*70}")
+        print(f"🔍 CLIENT LOOKUP STARTING")
+        print(f"{'='*70}")
         print(f"🔍 Looking up client by phone: {caller}")
+
         client = await phorest_service.find_client_by_phone(caller)
+
+        print(f"\n{'='*70}")
+        print(f"🔍 CLIENT LOOKUP RESULT")
+        print(f"{'='*70}")
         if client:
-            print(f"✅ Found client: {client.get('firstName', '')} {client.get('lastName', '')}")
+            print(f"✅ CLIENT FOUND!")
+            print(f"   Name: {client.get('firstName', '')} {client.get('lastName', '')}")
+            print(f"   Client ID: {client.get('clientId', 'N/A')}")
+            print(f"   Mobile: {client.get('mobile', 'N/A')}")
+            print(f"   Email: {client.get('email', 'N/A')}")
             conversation_service.set_client_info(call_control_id, client)
         else:
-            print(f"🆕 New caller (not in system): {caller}")
+            print(f"❌ NO CLIENT FOUND")
+            print(f"   Phone number searched: {caller}")
+            print(f"   This is a new caller (not in Phorest system)")
+        print(f"{'='*70}\n")
 
         # Answer the call if needed
         if event_type == "call.initiated":
@@ -157,12 +178,24 @@ async def handle_call_webhook(request: Request):
                 service = intent.get("service", "haircut")
                 stylist = intent.get("stylist", "")
 
-                print(f"🎯 BOOKING: {service} with {stylist}")
+                print(f"\n{'='*70}")
+                print(f"🎯 BOOKING REQUEST DETECTED")
+                print(f"{'='*70}")
+                print(f"   Service: {service}")
+                print(f"   Stylist: {stylist}")
+                print(f"   Client info: {client_info.get('firstName') if client_info else 'None'}")
+
+                # Send an immediate acknowledgment to keep the call alive
+                await telnyx_service.speak(call_control_id, "Let me check availability for you, just one moment please.")
+                print(f"🗣️  Sent acknowledgment to keep call alive")
 
                 # Check availability
+                print(f"🔍 Starting availability check...")
                 availability = await phorest_service.check_availability(
                     service, stylist
                 )
+                print(f"✅ Availability check completed")
+                print(f"   Result: {availability}")
 
                 # Check if staff was not found
                 if availability.get("error") and "not found" in availability.get("error", "").lower():
