@@ -109,8 +109,8 @@ class ConversationService:
         # Add customer message
         self.add_message(call_control_id, "user", transcript)
 
-        # Build system prompt
-        system_prompt = self._build_system_prompt(client_info)
+        # Build system prompt with real staff data
+        system_prompt = await self._build_system_prompt(client_info)
 
         try:
             # Build conversation history for Gemini
@@ -155,11 +155,23 @@ class ConversationService:
                 "intent": None,
             }
 
-    def _build_system_prompt(
+    async def _build_system_prompt(
         self, client_info: Optional[Dict] = None
     ) -> str:
-        """Build system prompt based on context"""
-        base_prompt = """You are a friendly receptionist for Paulo Lanfredi Salon.
+        """Build system prompt based on context and real Phorest data"""
+
+        # Fetch real staff from Phorest
+        from src.services.phorest import phorest_service
+        try:
+            staff_list = await phorest_service.get_staff()
+            staff_names = [s.get("firstName", "") for s in staff_list if s.get("firstName")]
+            staff_str = ", ".join(staff_names) if staff_names else "Paulo, Leo, Patrick, Joseph, Jake"
+            print(f"📋 Using real staff list: {staff_str}")
+        except Exception as e:
+            print(f"⚠️  Could not fetch staff list: {e}")
+            staff_str = "Paulo, Leo, Patrick, Joseph, Jake"  # Fallback
+
+        base_prompt = f"""You are a friendly receptionist for Paulo Lanfredi Salon.
 
 Your responsibilities:
 1. Greet customers warmly
@@ -168,15 +180,17 @@ Your responsibilities:
 4. If customer seems frustrated or specifically asks, offer to transfer to a human
 
 Available Services: Haircut, Color, Highlights, Blowout, Treatment
-Available Stylists: Paulo, Leo, Patrick, Joseph, Jake
+Available Stylists: {staff_str}
+
+IMPORTANT: Only suggest stylists from the list above. Never make up stylist names.
 
 Response Guidelines:
 - Keep responses brief and natural (1-2 sentences)
 - If you have enough info to book, respond with JSON:
-  {"action": "book", "service": "haircut", "stylist": "Paulo"}
-- For rescheduling: {"action": "reschedule", "appointment_id": "xxx"}
-- For cancellation: {"action": "cancel", "appointment_id": "xxx"}
-- If customer asks for human: {"action": "transfer"}
+  {{"action": "book", "service": "haircut", "stylist": "Paulo"}}
+- For rescheduling: {{"action": "reschedule", "appointment_id": "xxx"}}
+- For cancellation: {{"action": "cancel", "appointment_id": "xxx"}}
+- If customer asks for human: {{"action": "transfer"}}
 - Otherwise, ask clarifying questions naturally
 
 """

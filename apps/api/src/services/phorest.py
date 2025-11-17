@@ -30,6 +30,36 @@ class PhorestService:
             "Accept": "application/json",
         }
 
+    def _normalize_phone(self, phone: str) -> List[str]:
+        """
+        Generate normalized phone number variants for searching
+
+        Args:
+            phone: Phone number in any format
+
+        Returns:
+            List of normalized phone variants to try
+        """
+        # Remove all non-digit characters
+        digits_only = ''.join(filter(str.isdigit, phone))
+
+        variants = [
+            phone,  # Original format
+            digits_only,  # Just digits: 6815080516
+            f"+1{digits_only[-10:]}" if len(digits_only) >= 10 else phone,  # +16815080516
+            digits_only[-10:] if len(digits_only) >= 10 else digits_only,  # Last 10: 6815080516
+        ]
+
+        # Add formatted variants
+        if len(digits_only) >= 10:
+            last_10 = digits_only[-10:]
+            variants.extend([
+                f"({last_10[:3]}) {last_10[3:6]}-{last_10[6:]}",  # (681) 508-0516
+                f"{last_10[:3]}-{last_10[3:6]}-{last_10[6:]}",  # 681-508-0516
+            ])
+
+        return list(set(variants))  # Remove duplicates
+
     async def find_client_by_phone(
         self, phone_number: str
     ) -> Optional[Dict[str, Any]]:
@@ -49,34 +79,37 @@ class PhorestService:
             # Note: Client endpoint does NOT include branch ID (per Phorest API docs)
             url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/client"
 
-            try:
-                # Search by phone
-                params = {"mobile": phone_number, "size": 50, "page": 0}
-                print(f"  URL: {url}")
-                print(f"  Params: {params}")
+            # Try multiple phone number formats
+            phone_variants = self._normalize_phone(phone_number)
+            print(f"  Trying {len(phone_variants)} phone format variants")
 
-                response = await client.get(
-                    url, headers=self.headers, params=params
-                )
+            for variant in phone_variants:
+                try:
+                    # Search by phone
+                    params = {"mobile": variant, "size": 50, "page": 0}
+                    print(f"  Trying: {variant}")
 
-                print(f"  Response Status: {response.status_code}")
-                response.raise_for_status()
+                    response = await client.get(
+                        url, headers=self.headers, params=params
+                    )
 
-                data = response.json()
-                clients = data.get("_embedded", {}).get("clients", [])
+                    print(f"  Response Status: {response.status_code}")
+                    response.raise_for_status()
 
-                print(f"  Found {len(clients)} client(s)")
-                if clients:
-                    print(f"  ✅ Match: {clients[0].get('firstName')} {clients[0].get('lastName')} - {clients[0].get('mobile')}")
-                    return clients[0]  # Return first match
-                else:
-                    print(f"  ℹ️  No clients found with mobile: {phone_number}")
-                    return None
+                    data = response.json()
+                    clients = data.get("_embedded", {}).get("clients", [])
 
-            except Exception as e:
-                print(f"❌ Error finding client: {e}")
-                print(f"  URL: {url}")
-                return None
+                    if clients:
+                        print(f"  ✅ Found {len(clients)} client(s) with variant: {variant}")
+                        print(f"  ✅ Match: {clients[0].get('firstName')} {clients[0].get('lastName')} - {clients[0].get('mobile')}")
+                        return clients[0]  # Return first match
+
+                except Exception as e:
+                    print(f"  ⚠️  Variant {variant} failed: {e}")
+                    continue
+
+            print(f"  ℹ️  No clients found with any phone variant")
+            return None
 
     async def create_client(
         self, first_name: str, last_name: str, phone_number: str, email: Optional[str] = None
@@ -198,43 +231,68 @@ class PhorestService:
             staff_list = await self.get_staff()
             print(f"  ✅ Got {len(staff_list)} staff members")
 
+            # Print available staff for debugging
+            staff_names = [f"{s.get('firstName', '')} {s.get('lastName', '')}" for s in staff_list]
+            print(f"  Available staff: {', '.join(staff_names)}")
+
             staff = None
             if staff_name:
+                # Try to match the requested staff
                 for s in staff_list:
-                    if staff_name.lower() in s["firstName"].lower():
+                    first_name = s.get("firstName", "").lower()
+                    last_name = s.get("lastName", "").lower()
+                    full_name = f"{first_name} {last_name}"
+
+                    if staff_name.lower() in first_name or staff_name.lower() in full_name:
                         staff = s
+                        print(f"  ✅ Matched staff: {s.get('firstName')} {s.get('lastName')}")
                         break
-            if not staff and staff_list:
-                staff = staff_list[0]  # Default to first staff
 
-            if staff:
-                print(f"  ✅ Matched staff: {staff.get('firstName')} {staff.get('lastName')}")
+                if not staff:
+                    # Staff name was provided but doesn't match anyone
+                    print(f"  ❌ Requested staff '{staff_name}' not found!")
+                    print(f"  ℹ️  Available staff: {', '.join(staff_names)}")
+                    return {
+                        "service": service.get("name") if service else None,
+                        "staff": None,
+                        "staff_not_found": staff_name,
+                        "available_staff": staff_names,
+                        "slots": [],
+                        "error": f"Staff member '{staff_name}' not found"
+                    }
             else:
-                print(f"  ❌ No staff matched!")
+                # No staff preference - we'll check availability without staff filter
+                print(f"  ℹ️  No staff preference - will check any available staff")
 
-            if not service or not staff:
-                print(f"  ❌ Missing service or staff - returning empty")
-                return {"service": None, "staff": None, "slots": []}
+            if not service:
+                print(f"  ❌ No service found - returning empty")
+                return {"service": None, "staff": None, "slots": [], "error": "Service not found"}
 
             # Check availability
             now = datetime.now()
             later = now + timedelta(days=days_ahead)
 
             avail_url = f"{self.base_url}/third-party-api-server/api/business/{self.business_id}/branch/{self.branch_id}/appointments/availability"
+
+            # Build client service selection - staffId is optional
+            client_selection = {
+                "serviceSelections": [{"serviceId": service["serviceId"]}]
+            }
+            if staff:
+                client_selection["staffId"] = staff["staffId"]
+
             payload = {
                 "startTime": now.isoformat() + "Z",
                 "endTime": later.isoformat() + "Z",
-                "clientServiceSelections": [
-                    {
-                        "serviceSelections": [{"serviceId": service["serviceId"]}],
-                        "staffId": staff["staffId"],
-                    }
-                ],
+                "clientServiceSelections": [client_selection],
             }
 
             print(f"\n🔍 DEBUG: Checking availability")
             print(f"  Service: {service.get('name')} (ID: {service.get('serviceId')})")
-            print(f"  Staff: {staff.get('firstName')} {staff.get('lastName')} (ID: {staff.get('staffId')})")
+            if staff:
+                print(f"  Staff: {staff.get('firstName')} {staff.get('lastName')} (ID: {staff.get('staffId')})")
+            else:
+                print(f"  Staff: ANY (no preference)")
             print(f"  URL: {avail_url}")
             print(f"  Payload: {payload}")
 
@@ -289,13 +347,20 @@ class PhorestService:
                             }
                         )
 
-                return {
+                result = {
                     "service": service["name"],
                     "service_id": service["serviceId"],
-                    "staff": f"{staff['firstName']} {staff['lastName']}",
-                    "staff_id": staff["staffId"],
                     "slots": slots,
                 }
+
+                if staff:
+                    result["staff"] = f"{staff['firstName']} {staff['lastName']}"
+                    result["staff_id"] = staff["staffId"]
+                else:
+                    result["staff"] = "Any available staff"
+                    result["staff_id"] = None
+
+                return result
 
             except httpx.HTTPStatusError as e:
                 print(f"\n❌ HTTP Error checking availability:")

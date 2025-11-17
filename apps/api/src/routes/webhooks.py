@@ -85,8 +85,62 @@ async def handle_call_webhook(request: Request):
         # Get conversation context
         conv = conversation_service.get_conversation(call_control_id)
         client_info = conv.get("client_info") if conv else None
+        booking_state = conv.get("context", {}).get("booking_state") if conv else None
+        availability = conv.get("context", {}).get("availability") if conv else None
 
-        # Process with Claude
+        # Check if we're waiting for slot confirmation
+        if booking_state == "awaiting_slot_confirmation" and availability:
+            print(f"🎯 Customer is confirming slot choice...")
+
+            # Simple slot selection logic - look for keywords
+            transcript_lower = transcript.lower()
+            selected_slot = None
+
+            if "first" in transcript_lower or "1" in transcript:
+                selected_slot = availability["slots"][0] if availability["slots"] else None
+            elif "second" in transcript_lower or "2" in transcript:
+                selected_slot = availability["slots"][1] if len(availability["slots"]) > 1 else None
+            elif "third" in transcript_lower or "3" in transcript:
+                selected_slot = availability["slots"][2] if len(availability["slots"]) > 2 else None
+            elif any(word in transcript_lower for word in ["yes", "sure", "ok", "that works", "perfect", "great"]):
+                # They're confirming - assume first slot
+                selected_slot = availability["slots"][0] if availability["slots"] else None
+
+            if selected_slot:
+                print(f"✅ Slot selected: {selected_slot['time']}")
+
+                # Check if we have client info
+                if not client_info:
+                    response_text = "I need to create a profile for you first. Can I have your first and last name?"
+                    conversation_service.set_context(call_control_id, "booking_state", "awaiting_client_name")
+                    conversation_service.set_context(call_control_id, "selected_slot", selected_slot)
+                else:
+                    # Book the appointment!
+                    print(f"🎯 Booking appointment for {client_info.get('firstName')} {client_info.get('lastName')}")
+                    appointment = await phorest_service.create_appointment(
+                        client_info["clientId"],
+                        availability["service_id"],
+                        availability["staff_id"],
+                        selected_slot["raw"]
+                    )
+
+                    if appointment:
+                        response_text = f"Perfect! I've booked your {availability['service']} appointment with {availability['staff']} on {selected_slot['time']}. See you then!"
+                        print(f"✅ Appointment booked successfully!")
+                    else:
+                        response_text = "I'm sorry, I had trouble completing that booking. Let me transfer you to someone who can help."
+                        print(f"❌ Appointment booking failed")
+
+                    # Clear booking state
+                    conversation_service.set_context(call_control_id, "booking_state", None)
+                    conversation_service.set_context(call_control_id, "availability", None)
+
+                # Speak the response and skip AI processing
+                await telnyx_service.speak(call_control_id, response_text)
+                print(f"🗣️  Response: '{response_text[:80]}...'")
+                return {"status": "ok"}
+
+        # Process with AI
         result = await conversation_service.process_message(
             call_control_id, transcript, client_info
         )
@@ -110,7 +164,13 @@ async def handle_call_webhook(request: Request):
                     service, stylist
                 )
 
-                if availability["slots"]:
+                # Check if staff was not found
+                if availability.get("error") and "not found" in availability.get("error", "").lower():
+                    available_staff = availability.get("available_staff", [])
+                    staff_list = ", ".join(available_staff) if available_staff else "our team"
+                    response_text = f"I'm sorry, I don't have a stylist named {stylist}. Our available stylists are: {staff_list}. Would you like to book with one of them?"
+                    print(f"❌ Staff '{stylist}' not found")
+                elif availability["slots"]:
                     # Found available slots
                     times = ", ".join([s["time"] for s in availability["slots"]])
                     response_text = f"Great! I found {availability['service']} appointments with {availability['staff']}. Available: {times}. Which works best for you?"
@@ -119,7 +179,11 @@ async def handle_call_webhook(request: Request):
                     conversation_service.set_context(
                         call_control_id, "availability", availability
                     )
+                    conversation_service.set_context(
+                        call_control_id, "booking_state", "awaiting_slot_confirmation"
+                    )
                     print(f"✅ SLOTS: {times}")
+                    print(f"📌 Booking state set to: awaiting_slot_confirmation")
                 else:
                     response_text = "I'm sorry, I don't see any availability this week for that service. Would you like to try a different time or stylist?"
                     print("❌ No slots available")
