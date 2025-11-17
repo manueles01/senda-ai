@@ -169,6 +169,17 @@ async def handle_call_webhook(request: Request):
         response_text = result["response"]
         intent = result["intent"]
 
+        # Strip out JSON from response before speaking (Gemini sometimes includes it)
+        # Remove anything that looks like JSON: {...}
+        import re
+        clean_response = re.sub(r'\{[^}]*\}', '', response_text).strip()
+        if not clean_response:
+            # If removing JSON left nothing, use original
+            clean_response = response_text
+
+        print(f"🤖 Raw Gemini response: '{response_text}'")
+        print(f"🗣️  Clean response (will speak): '{clean_response}'")
+
         # Handle specific intents
         if intent:
             action = intent.get("action")
@@ -246,6 +257,9 @@ async def handle_call_webhook(request: Request):
             elif action == "reschedule":
                 # TODO: Implement rescheduling flow
                 response_text = "I can help you reschedule. Let me check your current appointment."
+        else:
+            # No specific intent detected - use the cleaned Gemini response (no JSON)
+            response_text = clean_response
 
         # Speak the response
         await telnyx_service.speak(call_control_id, response_text)

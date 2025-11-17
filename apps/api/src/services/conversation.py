@@ -190,12 +190,14 @@ IMPORTANT RULES:
 
 Response Guidelines:
 - Keep responses brief and natural (1-2 sentences)
-- If you have enough info to book, respond with JSON:
+- IMPORTANT: Your response will be read aloud to the customer. NEVER include JSON or technical data in your spoken response.
+- If you have enough info to book, ONLY respond with the JSON (no extra text):
   {{"action": "book", "service": "haircut", "stylist": "Paulo"}}
 - For rescheduling: {{"action": "reschedule", "appointment_id": "xxx"}}
 - For cancellation: {{"action": "cancel", "appointment_id": "xxx"}}
 - If customer asks for human: {{"action": "transfer"}}
-- Otherwise, ask clarifying questions naturally (but NEVER about location)
+- Otherwise, respond naturally in plain English (but NEVER about location)
+- NEVER mix JSON with natural language. Choose one or the other.
 
 """
 
