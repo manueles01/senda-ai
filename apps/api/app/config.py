@@ -54,6 +54,10 @@ class Settings(BaseSettings):
         default=None,
         description="Telnyx API key for telephony"
     )
+    telnyx_phone_number: Optional[str] = Field(
+        default=None,
+        description="Telnyx phone number for outbound calls"
+    )
 
     # Google/Gemini Configuration
     google_project_id: Optional[str] = Field(
@@ -63,6 +67,24 @@ class Settings(BaseSettings):
     gemini_model: str = Field(
         default="gemini-1.5-pro",
         description="Gemini model to use"
+    )
+
+    # Dialogflow CX Configuration
+    dialogflow_project_id: Optional[str] = Field(
+        default=None,
+        description="Dialogflow CX project ID (can be same as google_project_id)"
+    )
+    dialogflow_location: str = Field(
+        default="us-central1",
+        description="Dialogflow CX location/region"
+    )
+    dialogflow_agent_id: Optional[str] = Field(
+        default=None,
+        description="Dialogflow CX agent ID"
+    )
+    dialogflow_webhook_secret: Optional[str] = Field(
+        default=None,
+        description="Secret token for validating Dialogflow webhook requests"
     )
 
     model_config = SettingsConfigDict(
