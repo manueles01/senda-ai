@@ -1,0 +1,3 @@
+"""
+Senda AI applications package.
+"""
