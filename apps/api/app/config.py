@@ -1,11 +1,18 @@
 """Configuration management for Senda AI API."""
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
+
+    model_config = SettingsConfigDict(
+        env_file="../../.env",
+        env_file_encoding='utf-8',
+        case_sensitive=True,
+        extra='ignore'  # Ignore extra fields in .env
+    )
 
     # Application
     APP_NAME: str = "Senda AI API"
@@ -36,11 +43,6 @@ class Settings(BaseSettings):
     PHOREST_PASSWORD: Optional[str] = None
     PHOREST_BUSINESS_ID: Optional[str] = None
 
-    class Config:
-        env_file = "../../.env"  # Path from apps/api/app to root
-        env_file_encoding = 'utf-8'
-        case_sensitive = True
-        extra = "ignore"  # Ignore extra fields in .env
-
 
 settings = Settings()
+
