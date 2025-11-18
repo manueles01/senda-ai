@@ -22,8 +22,12 @@ class Settings(BaseSettings):
     # Google Cloud
     GOOGLE_PROJECT_ID: Optional[str] = None
     FIREBASE_PROJECT_ID: Optional[str] = None
+    firebase_project_id: Optional[str] = None  # Accept lowercase version too
     GEMINI_MODEL: str = "gemini-1.5-pro"
     GOOGLE_APPLICATION_CREDENTIALS: Optional[str] = None
+
+    # Anthropic (if using Claude)
+    anthropic_api_key: Optional[str] = None
 
     # Dialogflow CX
     DIALOGFLOW_AGENT_ID: Optional[str] = None
